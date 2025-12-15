@@ -28,5 +28,10 @@ go.work.sum
 .env
 
 # Editor/IDE
-# .idea/
-# .vscode/
+.idea/
+.vscode/
+out/
+
+# Local configuration file
+resources/config.local.toml
+

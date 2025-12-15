@@ -1,0 +1,21 @@
+services:
+  pgsql:
+    image: "postgres:18"
+    container_name: "pgsql"
+    environment:
+      - POSTGRES_PASSWORD=qwerty
+      - PGDATA=/var/lib/postgresql/17/docker
+    ports:
+      - "5432:5432"
+    volumes:
+      - "pg-data:/var/lib/postgresql"
+    networks:
+      - mynet
+
+volumes:
+  pg-data:
+
+networks:
+  mynet:
+    name: mynet
+    external: true

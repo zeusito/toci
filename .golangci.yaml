@@ -1,0 +1,29 @@
+version: "2"
+run:
+  modules-download-mode: readonly
+linters:
+  default: standard
+  enable:
+    - gocognit
+    - gocritic
+    - unconvert
+    - gosec
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+formatters:
+  enable:
+    - goimports
+    - gofmt
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

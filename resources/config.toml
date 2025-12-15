@@ -1,0 +1,28 @@
+[server]
+port = "3000"
+
+[database]
+enabled = false
+host = "localhost"
+port = 5432
+db-name = "mydb?sslmode=disable"
+user = "postgres"
+password = "qwerty"
+pool-size = 1
+log-queries = false
+
+[hasher]
+# openssl rand -base64 32 (generate a random 32-byte key and base64 encode it)
+sha-secret = ""
+
+[auth]
+dev-mode = true
+# openssl genpkey -algorithm ed25519 -out private.pem --> cat private.pem | base64
+jwt-secret = ""
+
+[email]
+enabled = true
+dev-mode = true
+test-email= "delivered@resend.dev"
+api-key = ""
+from-email = "Mailer <mailer@your.co>"
