@@ -7,6 +7,5 @@ type Terror struct {
 }
 
 func (e *Terror) Error() string {
-
 	return e.ErrMessage
 }
