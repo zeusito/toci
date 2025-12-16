@@ -34,7 +34,7 @@ func (h *Argon2IdHasher) Hash(data string) (string, error) {
 	b64Hash := base64.RawStdEncoding.EncodeToString(hash)
 
 	// Return the encoded hash in the form of "$argon2id$v=19$m=65536,t=1,p=4$c29tZXNhbHQ$aGFzaA"
-	encodedHash := fmt.Sprintf("$argon2id$v=19$m=%d,t=%d,p=%d$%s$%s", 64*1024, 1, 4, b64Salt, b64Hash)
+	encodedHash := fmt.Sprintf("$argon2id$v=19$m=%d,t=%d,p=%d$%s$%s", h.memory, h.time, h.threads, b64Salt, b64Hash)
 
 	return encodedHash, nil
 }
