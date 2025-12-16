@@ -17,8 +17,6 @@ sha-secret = ""
 
 [auth]
 dev-mode = true
-# openssl genpkey -algorithm ed25519 -out private.pem --> cat private.pem | base64
-jwt-secret = ""
 
 [email]
 enabled = true

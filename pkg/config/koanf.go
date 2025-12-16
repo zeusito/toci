@@ -37,8 +37,7 @@ type HasherConfigurations struct {
 }
 
 type AuthConfigurations struct {
-	DevMode     bool   `koanf:"dev-mode"`
-	TokenPrefix string `koanf:"token-prefix"`
+	DevMode bool `koanf:"dev-mode"`
 }
 
 type EmailConfigurations struct {
