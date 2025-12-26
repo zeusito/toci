@@ -4,9 +4,13 @@ run:
 linters:
   default: standard
   enable:
+    - errcheck
     - gocognit
     - gocritic
     - unconvert
+    - prealloc
+    - noctx
+    - misspell
     - gosec
   exclusions:
     generated: lax
