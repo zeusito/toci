@@ -50,7 +50,7 @@ func TestNewSessionFailedToPersist(t *testing.T) {
 	mockHasher.EXPECT().Hash(mock.AnythingOfType("string")).
 		Return("hashed_token", nil).Once()
 
-	mockStorage.EXPECT().Set(ctx, mock.AnythingOfType("string"), claims, mock.AnythingOfType("time.Time")).
+	mockStorage.EXPECT().Set(ctx, "hashed_token", mock.Anything).
 		Return(errors.New("failed to persist")).Once()
 
 	// Execute
@@ -75,7 +75,7 @@ func TestNewSession(t *testing.T) {
 	// Expectations
 	mockHasher.EXPECT().Hash(mock.AnythingOfType("string")).Return("hashed_token", nil).Once()
 
-	mockStorage.EXPECT().Set(ctx, mock.AnythingOfType("string"), claims, mock.AnythingOfType("time.Time")).
+	mockStorage.EXPECT().Set(ctx, mock.AnythingOfType("string"), mock.Anything).
 		Return(nil).Once()
 
 	// Execute
@@ -117,7 +117,7 @@ func TestGetSessionFailedToRetrieve(t *testing.T) {
 	mockHasher.EXPECT().Hash(mock.AnythingOfType("string")).Return("hashed_token", nil).Once()
 
 	mockStorage.EXPECT().Get(ctx, mock.AnythingOfType("string")).
-		Return(PrincipalClaims{}, errors.New("failed to retrieve")).Once()
+		Return(nil, errors.New("failed to retrieve")).Once()
 
 	// Execute
 	claims := service.GetSession(ctx, "token")
@@ -138,7 +138,7 @@ func TestGetSession(t *testing.T) {
 	mockHasher.EXPECT().Hash(mock.AnythingOfType("string")).Return("hashed_token", nil).Once()
 
 	mockStorage.EXPECT().Get(ctx, mock.AnythingOfType("string")).
-		Return(PrincipalClaims{PrincipalID: "aud_id", Roles: []string{"role1", "role2"}, IsAuthenticated: true}, nil).Once()
+		Return(&sessionData{PrincipalID: "aud_id", Roles: []string{"role1", "role2"}}, nil).Once()
 
 	// Execute
 	claims := service.GetSession(ctx, "token")

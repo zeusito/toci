@@ -26,34 +26,28 @@ create table if not exists identities (
     primary key (id)
 );
 
-create table if not exists one_time_tokens (
-    id varchar(50) not null,
-    hashed_code varchar(255) not null,
-    category varchar(100) not null,
-    identity_id varchar(50) not null,
-    used boolean not null default false,
+create table if not exists user_otts (
+    id varchar(255) not null, -- this is the hashed code
+    kind varchar(100) not null,
+    principal varchar(100) not null,
     expires_at timestamp not null default now(),
     created_at timestamp not null default now(),
-    primary key (id),
-    foreign key (identity_id) references identities(id) on delete cascade
+    primary key (id)
 );
 
-create table identity_sessions (
+create table user_sessions (
     id varchar(255) not null, -- this is the hashed opaque token
-    identity_id varchar(50) not null,
-    organization_id varchar(50) not null,
-    roles jsonb not null default '[]',
+    principal_id varchar(50) not null,
     ip_address varchar(50) not null default '0.0.0.0',
+    metadata jsonb not null default '{}',
     expires_at timestamp not null default now(),
     created_at timestamp not null default now(),
-    primary key (id),
-    foreign key (identity_id) references identities(id) on delete cascade,
-    foreign key (organization_id) references organizations(id) on delete cascade
+    primary key (id)
 );
 
 -- migrate:down
-drop table if exists identity_sessions;
-drop table if exists one_time_tokens;
+drop table if exists user_sessions;
+drop table if exists user_otts;
 drop table if exists identities;
 drop table if exists organizations;
 

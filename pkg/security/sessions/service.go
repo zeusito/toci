@@ -24,9 +24,15 @@ func (s *DefaultManager) NewSession(ctx context.Context, data PrincipalClaims, v
 	}
 
 	// Persist the session in storage
-	expiresAt := time.Now().UTC().Add(validForDuration)
+	sessionData := &sessionData{
+		PrincipalID: data.PrincipalID,
+		OrgID:       data.OrgID,
+		Roles:       data.Roles,
+		ExpiresAt:   time.Now().UTC().Add(validForDuration),
+		CreatedAt:   time.Now().UTC(),
+	}
 
-	err = s.storage.Set(ctx, hashedToken, data, expiresAt)
+	err = s.storage.Set(ctx, hashedToken, sessionData)
 	if err != nil {
 		log.Warn().Err(err).Msg("Failed to persist session in storage")
 		return "", false
@@ -51,7 +57,12 @@ func (s *DefaultManager) GetSession(ctx context.Context, token string) Principal
 		return PrincipalClaims{IsAuthenticated: false}
 	}
 
-	return session
+	return PrincipalClaims{
+		IsAuthenticated: true,
+		PrincipalID:     session.PrincipalID,
+		OrgID:           session.OrgID,
+		Roles:           session.Roles,
+	}
 }
 
 func (s *DefaultManager) RemoveSession(ctx context.Context, token string) bool {

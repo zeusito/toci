@@ -9,6 +9,15 @@ import (
 	"github.com/zeusito/toci/pkg/toolbox/hasher"
 )
 
+// sessionData internal use only, not exposed to the outside world. Customize as needed
+type sessionData struct {
+	PrincipalID string
+	OrgID       string
+	Roles       []string
+	ExpiresAt   time.Time
+	CreatedAt   time.Time
+}
+
 type Manager interface {
 	NewSession(ctx context.Context, data PrincipalClaims, validForDuration time.Duration) (string, bool)
 	GetSession(ctx context.Context, token string) PrincipalClaims
@@ -17,9 +26,9 @@ type Manager interface {
 }
 
 type Storage interface {
-	Set(ctx context.Context, hashedToken string, claims PrincipalClaims, expiresAt time.Time) error
-	Get(ctx context.Context, hashedToken string) (PrincipalClaims, error)
-	Remove(ctx context.Context, hashedToken string) error
+	Set(ctx context.Context, hashedID string, data *sessionData) error
+	Get(ctx context.Context, hashedID string) (*sessionData, error)
+	Remove(ctx context.Context, hashedID string) error
 }
 
 func NewManagerWithPgSQL(db *bun.DB, hasherSecret string) (Manager, bool) {

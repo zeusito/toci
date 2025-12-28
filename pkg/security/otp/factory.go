@@ -16,24 +16,24 @@ const (
 	KindEmployeePassword Kind = "employee_password"
 )
 
-// OneTimePassword is a struct that represents an OTP, customize it as needed
-type OneTimePassword struct {
-	Kind       Kind
-	Code       string
-	HashedCode string
-	ExpiresAt  time.Time
+// otpData internal struct used to store OTP data, not exposed to the outside world
+type otpData struct {
+	ID        string
+	Kind      Kind
+	Principal string
+	ExpiresAt time.Time
 }
 
 type Manager interface {
-	GenerateOTP(ctx context.Context, length int, kind Kind) (OneTimePassword, bool)
-	Retrieve(ctx context.Context, kind Kind, code string) (OneTimePassword, bool)
-	Remove(ctx context.Context, code string) bool
+	GenerateCode(ctx context.Context, length int, kind Kind, principal string) (string, bool)
+	VerifyCode(ctx context.Context, kind Kind, principal string, code string) bool
+	Remove(ctx context.Context, kind Kind, principal string) bool
 }
 
 type Storage interface {
-	Put(ctx context.Context, data OneTimePassword, expiresAt time.Time) error
-	Get(ctx context.Context, kind Kind, hashedCode string) (OneTimePassword, error)
-	Remove(ctx context.Context, hashedCode string) error
+	Put(ctx context.Context, kind Kind, principal, hashedCode string, expiresAt time.Time) error
+	Get(ctx context.Context, kind Kind, principal string) (*otpData, error)
+	Remove(ctx context.Context, kind Kind, principal string) error
 }
 
 func NewManagerWithPgSQL(db *bun.DB, hasherSecret string) (Manager, bool) {

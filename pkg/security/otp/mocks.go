@@ -38,46 +38,47 @@ func (_m *MockManager) EXPECT() *MockManager_Expecter {
 	return &MockManager_Expecter{mock: &_m.Mock}
 }
 
-// GenerateOTP provides a mock function for the type MockManager
-func (_mock *MockManager) GenerateOTP(ctx context.Context, length int, kind Kind) (OneTimePassword, bool) {
-	ret := _mock.Called(ctx, length, kind)
+// GenerateCode provides a mock function for the type MockManager
+func (_mock *MockManager) GenerateCode(ctx context.Context, length int, kind Kind, principal string) (string, bool) {
+	ret := _mock.Called(ctx, length, kind, principal)
 
 	if len(ret) == 0 {
-		panic("no return value specified for GenerateOTP")
+		panic("no return value specified for GenerateCode")
 	}
 
-	var r0 OneTimePassword
+	var r0 string
 	var r1 bool
-	if returnFunc, ok := ret.Get(0).(func(context.Context, int, Kind) (OneTimePassword, bool)); ok {
-		return returnFunc(ctx, length, kind)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int, Kind, string) (string, bool)); ok {
+		return returnFunc(ctx, length, kind, principal)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, int, Kind) OneTimePassword); ok {
-		r0 = returnFunc(ctx, length, kind)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, int, Kind, string) string); ok {
+		r0 = returnFunc(ctx, length, kind, principal)
 	} else {
-		r0 = ret.Get(0).(OneTimePassword)
+		r0 = ret.Get(0).(string)
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, int, Kind) bool); ok {
-		r1 = returnFunc(ctx, length, kind)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, int, Kind, string) bool); ok {
+		r1 = returnFunc(ctx, length, kind, principal)
 	} else {
 		r1 = ret.Get(1).(bool)
 	}
 	return r0, r1
 }
 
-// MockManager_GenerateOTP_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GenerateOTP'
-type MockManager_GenerateOTP_Call struct {
+// MockManager_GenerateCode_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GenerateCode'
+type MockManager_GenerateCode_Call struct {
 	*mock.Call
 }
 
-// GenerateOTP is a helper method to define mock.On call
+// GenerateCode is a helper method to define mock.On call
 //   - ctx context.Context
 //   - length int
 //   - kind Kind
-func (_e *MockManager_Expecter) GenerateOTP(ctx interface{}, length interface{}, kind interface{}) *MockManager_GenerateOTP_Call {
-	return &MockManager_GenerateOTP_Call{Call: _e.mock.On("GenerateOTP", ctx, length, kind)}
+//   - principal string
+func (_e *MockManager_Expecter) GenerateCode(ctx interface{}, length interface{}, kind interface{}, principal interface{}) *MockManager_GenerateCode_Call {
+	return &MockManager_GenerateCode_Call{Call: _e.mock.On("GenerateCode", ctx, length, kind, principal)}
 }
 
-func (_c *MockManager_GenerateOTP_Call) Run(run func(ctx context.Context, length int, kind Kind)) *MockManager_GenerateOTP_Call {
+func (_c *MockManager_GenerateCode_Call) Run(run func(ctx context.Context, length int, kind Kind, principal string)) *MockManager_GenerateCode_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -91,36 +92,41 @@ func (_c *MockManager_GenerateOTP_Call) Run(run func(ctx context.Context, length
 		if args[2] != nil {
 			arg2 = args[2].(Kind)
 		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
 		run(
 			arg0,
 			arg1,
 			arg2,
+			arg3,
 		)
 	})
 	return _c
 }
 
-func (_c *MockManager_GenerateOTP_Call) Return(oneTimePassword OneTimePassword, b bool) *MockManager_GenerateOTP_Call {
-	_c.Call.Return(oneTimePassword, b)
+func (_c *MockManager_GenerateCode_Call) Return(s string, b bool) *MockManager_GenerateCode_Call {
+	_c.Call.Return(s, b)
 	return _c
 }
 
-func (_c *MockManager_GenerateOTP_Call) RunAndReturn(run func(ctx context.Context, length int, kind Kind) (OneTimePassword, bool)) *MockManager_GenerateOTP_Call {
+func (_c *MockManager_GenerateCode_Call) RunAndReturn(run func(ctx context.Context, length int, kind Kind, principal string) (string, bool)) *MockManager_GenerateCode_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // Remove provides a mock function for the type MockManager
-func (_mock *MockManager) Remove(ctx context.Context, code string) bool {
-	ret := _mock.Called(ctx, code)
+func (_mock *MockManager) Remove(ctx context.Context, kind Kind, principal string) bool {
+	ret := _mock.Called(ctx, kind, principal)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Remove")
 	}
 
 	var r0 bool
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) bool); ok {
-		r0 = returnFunc(ctx, code)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, Kind, string) bool); ok {
+		r0 = returnFunc(ctx, kind, principal)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
@@ -134,79 +140,13 @@ type MockManager_Remove_Call struct {
 
 // Remove is a helper method to define mock.On call
 //   - ctx context.Context
-//   - code string
-func (_e *MockManager_Expecter) Remove(ctx interface{}, code interface{}) *MockManager_Remove_Call {
-	return &MockManager_Remove_Call{Call: _e.mock.On("Remove", ctx, code)}
-}
-
-func (_c *MockManager_Remove_Call) Run(run func(ctx context.Context, code string)) *MockManager_Remove_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 string
-		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		run(
-			arg0,
-			arg1,
-		)
-	})
-	return _c
-}
-
-func (_c *MockManager_Remove_Call) Return(b bool) *MockManager_Remove_Call {
-	_c.Call.Return(b)
-	return _c
-}
-
-func (_c *MockManager_Remove_Call) RunAndReturn(run func(ctx context.Context, code string) bool) *MockManager_Remove_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// Retrieve provides a mock function for the type MockManager
-func (_mock *MockManager) Retrieve(ctx context.Context, kind Kind, code string) (OneTimePassword, bool) {
-	ret := _mock.Called(ctx, kind, code)
-
-	if len(ret) == 0 {
-		panic("no return value specified for Retrieve")
-	}
-
-	var r0 OneTimePassword
-	var r1 bool
-	if returnFunc, ok := ret.Get(0).(func(context.Context, Kind, string) (OneTimePassword, bool)); ok {
-		return returnFunc(ctx, kind, code)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, Kind, string) OneTimePassword); ok {
-		r0 = returnFunc(ctx, kind, code)
-	} else {
-		r0 = ret.Get(0).(OneTimePassword)
-	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, Kind, string) bool); ok {
-		r1 = returnFunc(ctx, kind, code)
-	} else {
-		r1 = ret.Get(1).(bool)
-	}
-	return r0, r1
-}
-
-// MockManager_Retrieve_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Retrieve'
-type MockManager_Retrieve_Call struct {
-	*mock.Call
-}
-
-// Retrieve is a helper method to define mock.On call
-//   - ctx context.Context
 //   - kind Kind
-//   - code string
-func (_e *MockManager_Expecter) Retrieve(ctx interface{}, kind interface{}, code interface{}) *MockManager_Retrieve_Call {
-	return &MockManager_Retrieve_Call{Call: _e.mock.On("Retrieve", ctx, kind, code)}
+//   - principal string
+func (_e *MockManager_Expecter) Remove(ctx interface{}, kind interface{}, principal interface{}) *MockManager_Remove_Call {
+	return &MockManager_Remove_Call{Call: _e.mock.On("Remove", ctx, kind, principal)}
 }
 
-func (_c *MockManager_Retrieve_Call) Run(run func(ctx context.Context, kind Kind, code string)) *MockManager_Retrieve_Call {
+func (_c *MockManager_Remove_Call) Run(run func(ctx context.Context, kind Kind, principal string)) *MockManager_Remove_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -229,12 +169,81 @@ func (_c *MockManager_Retrieve_Call) Run(run func(ctx context.Context, kind Kind
 	return _c
 }
 
-func (_c *MockManager_Retrieve_Call) Return(oneTimePassword OneTimePassword, b bool) *MockManager_Retrieve_Call {
-	_c.Call.Return(oneTimePassword, b)
+func (_c *MockManager_Remove_Call) Return(b bool) *MockManager_Remove_Call {
+	_c.Call.Return(b)
 	return _c
 }
 
-func (_c *MockManager_Retrieve_Call) RunAndReturn(run func(ctx context.Context, kind Kind, code string) (OneTimePassword, bool)) *MockManager_Retrieve_Call {
+func (_c *MockManager_Remove_Call) RunAndReturn(run func(ctx context.Context, kind Kind, principal string) bool) *MockManager_Remove_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// VerifyCode provides a mock function for the type MockManager
+func (_mock *MockManager) VerifyCode(ctx context.Context, kind Kind, principal string, code string) bool {
+	ret := _mock.Called(ctx, kind, principal, code)
+
+	if len(ret) == 0 {
+		panic("no return value specified for VerifyCode")
+	}
+
+	var r0 bool
+	if returnFunc, ok := ret.Get(0).(func(context.Context, Kind, string, string) bool); ok {
+		r0 = returnFunc(ctx, kind, principal, code)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	return r0
+}
+
+// MockManager_VerifyCode_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'VerifyCode'
+type MockManager_VerifyCode_Call struct {
+	*mock.Call
+}
+
+// VerifyCode is a helper method to define mock.On call
+//   - ctx context.Context
+//   - kind Kind
+//   - principal string
+//   - code string
+func (_e *MockManager_Expecter) VerifyCode(ctx interface{}, kind interface{}, principal interface{}, code interface{}) *MockManager_VerifyCode_Call {
+	return &MockManager_VerifyCode_Call{Call: _e.mock.On("VerifyCode", ctx, kind, principal, code)}
+}
+
+func (_c *MockManager_VerifyCode_Call) Run(run func(ctx context.Context, kind Kind, principal string, code string)) *MockManager_VerifyCode_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 Kind
+		if args[1] != nil {
+			arg1 = args[1].(Kind)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockManager_VerifyCode_Call) Return(b bool) *MockManager_VerifyCode_Call {
+	_c.Call.Return(b)
+	return _c
+}
+
+func (_c *MockManager_VerifyCode_Call) RunAndReturn(run func(ctx context.Context, kind Kind, principal string, code string) bool) *MockManager_VerifyCode_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -267,25 +276,27 @@ func (_m *MockStorage) EXPECT() *MockStorage_Expecter {
 }
 
 // Get provides a mock function for the type MockStorage
-func (_mock *MockStorage) Get(ctx context.Context, kind Kind, hashedCode string) (OneTimePassword, error) {
-	ret := _mock.Called(ctx, kind, hashedCode)
+func (_mock *MockStorage) Get(ctx context.Context, kind Kind, principal string) (*otpData, error) {
+	ret := _mock.Called(ctx, kind, principal)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Get")
 	}
 
-	var r0 OneTimePassword
+	var r0 *otpData
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, Kind, string) (OneTimePassword, error)); ok {
-		return returnFunc(ctx, kind, hashedCode)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, Kind, string) (*otpData, error)); ok {
+		return returnFunc(ctx, kind, principal)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, Kind, string) OneTimePassword); ok {
-		r0 = returnFunc(ctx, kind, hashedCode)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, Kind, string) *otpData); ok {
+		r0 = returnFunc(ctx, kind, principal)
 	} else {
-		r0 = ret.Get(0).(OneTimePassword)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*otpData)
+		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, Kind, string) error); ok {
-		r1 = returnFunc(ctx, kind, hashedCode)
+		r1 = returnFunc(ctx, kind, principal)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -300,12 +311,12 @@ type MockStorage_Get_Call struct {
 // Get is a helper method to define mock.On call
 //   - ctx context.Context
 //   - kind Kind
-//   - hashedCode string
-func (_e *MockStorage_Expecter) Get(ctx interface{}, kind interface{}, hashedCode interface{}) *MockStorage_Get_Call {
-	return &MockStorage_Get_Call{Call: _e.mock.On("Get", ctx, kind, hashedCode)}
+//   - principal string
+func (_e *MockStorage_Expecter) Get(ctx interface{}, kind interface{}, principal interface{}) *MockStorage_Get_Call {
+	return &MockStorage_Get_Call{Call: _e.mock.On("Get", ctx, kind, principal)}
 }
 
-func (_c *MockStorage_Get_Call) Run(run func(ctx context.Context, kind Kind, hashedCode string)) *MockStorage_Get_Call {
+func (_c *MockStorage_Get_Call) Run(run func(ctx context.Context, kind Kind, principal string)) *MockStorage_Get_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -328,27 +339,27 @@ func (_c *MockStorage_Get_Call) Run(run func(ctx context.Context, kind Kind, has
 	return _c
 }
 
-func (_c *MockStorage_Get_Call) Return(oneTimePassword OneTimePassword, err error) *MockStorage_Get_Call {
-	_c.Call.Return(oneTimePassword, err)
+func (_c *MockStorage_Get_Call) Return(otpDataMoqParam *otpData, err error) *MockStorage_Get_Call {
+	_c.Call.Return(otpDataMoqParam, err)
 	return _c
 }
 
-func (_c *MockStorage_Get_Call) RunAndReturn(run func(ctx context.Context, kind Kind, hashedCode string) (OneTimePassword, error)) *MockStorage_Get_Call {
+func (_c *MockStorage_Get_Call) RunAndReturn(run func(ctx context.Context, kind Kind, principal string) (*otpData, error)) *MockStorage_Get_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // Put provides a mock function for the type MockStorage
-func (_mock *MockStorage) Put(ctx context.Context, data OneTimePassword, expiresAt time.Time) error {
-	ret := _mock.Called(ctx, data, expiresAt)
+func (_mock *MockStorage) Put(ctx context.Context, kind Kind, principal string, hashedCode string, expiresAt time.Time) error {
+	ret := _mock.Called(ctx, kind, principal, hashedCode, expiresAt)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Put")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, OneTimePassword, time.Time) error); ok {
-		r0 = returnFunc(ctx, data, expiresAt)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, Kind, string, string, time.Time) error); ok {
+		r0 = returnFunc(ctx, kind, principal, hashedCode, expiresAt)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -362,30 +373,42 @@ type MockStorage_Put_Call struct {
 
 // Put is a helper method to define mock.On call
 //   - ctx context.Context
-//   - data OneTimePassword
+//   - kind Kind
+//   - principal string
+//   - hashedCode string
 //   - expiresAt time.Time
-func (_e *MockStorage_Expecter) Put(ctx interface{}, data interface{}, expiresAt interface{}) *MockStorage_Put_Call {
-	return &MockStorage_Put_Call{Call: _e.mock.On("Put", ctx, data, expiresAt)}
+func (_e *MockStorage_Expecter) Put(ctx interface{}, kind interface{}, principal interface{}, hashedCode interface{}, expiresAt interface{}) *MockStorage_Put_Call {
+	return &MockStorage_Put_Call{Call: _e.mock.On("Put", ctx, kind, principal, hashedCode, expiresAt)}
 }
 
-func (_c *MockStorage_Put_Call) Run(run func(ctx context.Context, data OneTimePassword, expiresAt time.Time)) *MockStorage_Put_Call {
+func (_c *MockStorage_Put_Call) Run(run func(ctx context.Context, kind Kind, principal string, hashedCode string, expiresAt time.Time)) *MockStorage_Put_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 OneTimePassword
+		var arg1 Kind
 		if args[1] != nil {
-			arg1 = args[1].(OneTimePassword)
+			arg1 = args[1].(Kind)
 		}
-		var arg2 time.Time
+		var arg2 string
 		if args[2] != nil {
-			arg2 = args[2].(time.Time)
+			arg2 = args[2].(string)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		var arg4 time.Time
+		if args[4] != nil {
+			arg4 = args[4].(time.Time)
 		}
 		run(
 			arg0,
 			arg1,
 			arg2,
+			arg3,
+			arg4,
 		)
 	})
 	return _c
@@ -396,22 +419,22 @@ func (_c *MockStorage_Put_Call) Return(err error) *MockStorage_Put_Call {
 	return _c
 }
 
-func (_c *MockStorage_Put_Call) RunAndReturn(run func(ctx context.Context, data OneTimePassword, expiresAt time.Time) error) *MockStorage_Put_Call {
+func (_c *MockStorage_Put_Call) RunAndReturn(run func(ctx context.Context, kind Kind, principal string, hashedCode string, expiresAt time.Time) error) *MockStorage_Put_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // Remove provides a mock function for the type MockStorage
-func (_mock *MockStorage) Remove(ctx context.Context, hashedCode string) error {
-	ret := _mock.Called(ctx, hashedCode)
+func (_mock *MockStorage) Remove(ctx context.Context, kind Kind, principal string) error {
+	ret := _mock.Called(ctx, kind, principal)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Remove")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = returnFunc(ctx, hashedCode)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, Kind, string) error); ok {
+		r0 = returnFunc(ctx, kind, principal)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -425,24 +448,30 @@ type MockStorage_Remove_Call struct {
 
 // Remove is a helper method to define mock.On call
 //   - ctx context.Context
-//   - hashedCode string
-func (_e *MockStorage_Expecter) Remove(ctx interface{}, hashedCode interface{}) *MockStorage_Remove_Call {
-	return &MockStorage_Remove_Call{Call: _e.mock.On("Remove", ctx, hashedCode)}
+//   - kind Kind
+//   - principal string
+func (_e *MockStorage_Expecter) Remove(ctx interface{}, kind interface{}, principal interface{}) *MockStorage_Remove_Call {
+	return &MockStorage_Remove_Call{Call: _e.mock.On("Remove", ctx, kind, principal)}
 }
 
-func (_c *MockStorage_Remove_Call) Run(run func(ctx context.Context, hashedCode string)) *MockStorage_Remove_Call {
+func (_c *MockStorage_Remove_Call) Run(run func(ctx context.Context, kind Kind, principal string)) *MockStorage_Remove_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 string
+		var arg1 Kind
 		if args[1] != nil {
-			arg1 = args[1].(string)
+			arg1 = args[1].(Kind)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
 		}
 		run(
 			arg0,
 			arg1,
+			arg2,
 		)
 	})
 	return _c
@@ -453,7 +482,7 @@ func (_c *MockStorage_Remove_Call) Return(err error) *MockStorage_Remove_Call {
 	return _c
 }
 
-func (_c *MockStorage_Remove_Call) RunAndReturn(run func(ctx context.Context, hashedCode string) error) *MockStorage_Remove_Call {
+func (_c *MockStorage_Remove_Call) RunAndReturn(run func(ctx context.Context, kind Kind, principal string) error) *MockStorage_Remove_Call {
 	_c.Call.Return(run)
 	return _c
 }

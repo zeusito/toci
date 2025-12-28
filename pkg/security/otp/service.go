@@ -15,68 +15,55 @@ type DefaultManager struct {
 	expirationDuration time.Duration
 }
 
-func (s *DefaultManager) GenerateOTP(ctx context.Context, length int, kind Kind) (OneTimePassword, bool) {
+// GenerateCode generates a random code of the specified length and kind
+func (s *DefaultManager) GenerateCode(ctx context.Context, length int, kind Kind, principal string) (string, bool) {
 	code := toolbox.SecureRandomString(length)
 	now := time.Now().UTC()
 
 	hashedCode, err := s.hashingAlgo.Hash(code)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to hash code")
-		return OneTimePassword{}, false
-	}
-
-	codeHolder := OneTimePassword{
-		HashedCode: hashedCode,
-		Code:       code,
-		Kind:       kind,
-		ExpiresAt:  now.Add(s.expirationDuration),
+		return "", false
 	}
 
 	// Persist the OTP
-	err = s.storage.Put(ctx, codeHolder, codeHolder.ExpiresAt)
+	err = s.storage.Put(ctx, kind, principal, hashedCode, now.Add(s.expirationDuration))
 	if err != nil {
 		log.Error().Err(err).Msg("failed to persist OTP")
-		return OneTimePassword{}, false
+		return "", false
 	}
 
-	return codeHolder, true
+	return code, true
 }
 
-func (s *DefaultManager) Retrieve(ctx context.Context, kind Kind, code string) (OneTimePassword, bool) {
-	now := time.Now().UTC()
-
-	hashedCode, err := s.hashingAlgo.Hash(code)
-	if err != nil {
-		log.Error().Err(err).Msg("failed to hash code")
-		return OneTimePassword{}, false
-	}
-
-	codeHolder, err := s.storage.Get(ctx, kind, hashedCode)
-	if err != nil {
-		log.Error().Err(err).Msg("failed to retrieve OTP")
-		return OneTimePassword{}, false
-	}
-
-	// Check if OTP is expired
-	if codeHolder.ExpiresAt.Before(now) {
-		log.Error().Msg("OTP is expired")
-		return OneTimePassword{}, false
-	}
-
-	// Add missing code
-	codeHolder.Code = code
-
-	return codeHolder, true
-}
-
-func (s *DefaultManager) Remove(ctx context.Context, code string) bool {
+// VerifyCode verifies the code of the specified kind and principal.
+// By default, only the last code from the combined kind and principal is valid.
+// Expiration is checked at the storage level.
+func (s *DefaultManager) VerifyCode(ctx context.Context, kind Kind, principal string, code string) bool {
 	hashedCode, err := s.hashingAlgo.Hash(code)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to hash code")
 		return false
 	}
 
-	err = s.storage.Remove(ctx, hashedCode)
+	record, err := s.storage.Get(ctx, kind, principal)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to retrieve OTP")
+		return false
+	}
+
+	// check if the hashes match
+	if record.ID != hashedCode {
+		log.Error().Msg("hashes do not match")
+		return false
+	}
+
+	return true
+}
+
+// Remove removes the code from the storage. All codes for the specified kind and principal are removed.
+func (s *DefaultManager) Remove(ctx context.Context, kind Kind, principal string) bool {
+	err := s.storage.Remove(ctx, kind, principal)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to remove OTP")
 		return false

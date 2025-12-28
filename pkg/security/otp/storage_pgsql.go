@@ -7,10 +7,11 @@ import (
 	"github.com/uptrace/bun"
 )
 
-type OneTimeTokenModel struct {
-	bun.BaseModel `bun:"table:otts,alias:otts"`
+type OneTimeTokenRecord struct {
+	bun.BaseModel `bun:"table:user_otts,alias:ott"`
 	ID            string    `bun:"id,pk"`
 	Kind          Kind      `bun:"kind"`
+	Principal     string    `bun:"principal"`
 	ExpiresAt     time.Time `bun:"expires_at"`
 	CreatedAt     time.Time `bun:"created_at"`
 }
@@ -25,11 +26,13 @@ func NewPgSQLStore(db *bun.DB) *PgSQLStore {
 	}
 }
 
-func (s *PgSQLStore) Put(ctx context.Context, data OneTimePassword, expiresAt time.Time) error {
+// Put stores a new OTP in the database
+func (s *PgSQLStore) Put(ctx context.Context, kind Kind, principal, hashedCode string, expiresAt time.Time) error {
 	_, err := s.db.NewInsert().
-		Model(&OneTimeTokenModel{
-			ID:        data.HashedCode,
-			Kind:      data.Kind,
+		Model(&OneTimeTokenRecord{
+			ID:        hashedCode,
+			Kind:      kind,
+			Principal: principal,
 			ExpiresAt: expiresAt,
 			CreatedAt: time.Now().UTC(),
 		}).
@@ -38,32 +41,37 @@ func (s *PgSQLStore) Put(ctx context.Context, data OneTimePassword, expiresAt ti
 	return err
 }
 
-func (s *PgSQLStore) Get(ctx context.Context, kind Kind, hashedCode string) (OneTimePassword, error) {
-	var model OneTimeTokenModel
+// Get retrieves an OTP from the database, by default only the latest one for the given kind and principal is returned
+func (s *PgSQLStore) Get(ctx context.Context, kind Kind, principal string) (*otpData, error) {
+	var model OneTimeTokenRecord
 
 	err := s.db.NewSelect().
 		Model(&model).
-		Where("id = ?", hashedCode).
+		Where("principal = ?", principal).
 		Where("kind = ?", kind).
 		Where("expires_at > ?", time.Now().UTC()).
+		Order("created_at DESC").
 		Limit(1).
 		Scan(ctx)
 
 	if err != nil {
-		return OneTimePassword{}, err
+		return nil, err
 	}
 
-	return OneTimePassword{
-		Kind:       model.Kind,
-		Code:       "", // we don't know this value here
-		HashedCode: model.ID,
+	return &otpData{
+		ID:        model.ID,
+		Kind:      model.Kind,
+		Principal: model.Principal,
+		ExpiresAt: model.ExpiresAt,
 	}, nil
 }
 
-func (s *PgSQLStore) Remove(ctx context.Context, hashedCode string) error {
+// Remove deletes all codes for a given kind and principal
+func (s *PgSQLStore) Remove(ctx context.Context, kind Kind, principal string) error {
 	_, err := s.db.NewDelete().
-		Model((*OneTimeTokenModel)(nil)).
-		Where("id = ?", hashedCode).
+		Model((*OneTimeTokenRecord)(nil)).
+		Where("principal = ?", principal).
+		Where("kind = ?", kind).
 		Exec(ctx)
 
 	return err

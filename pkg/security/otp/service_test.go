@@ -31,15 +31,13 @@ func TestDefaultManager_GenerateOTP(t *testing.T) {
 		mockHasher.EXPECT().Hash(mock.AnythingOfType("string")).
 			Return(hashedCode, nil).Times(1)
 
-		mockStorage.EXPECT().Put(ctx, mock.Anything, mock.AnythingOfType("time.Time")).
-			Return(nil)
+		mockStorage.EXPECT().Put(ctx, kind, "john@example.com",
+			mock.AnythingOfType("string"), mock.AnythingOfType("time.Time")).Return(nil)
 
-		otp, ok := manager.GenerateOTP(ctx, length, kind)
+		code, ok := manager.GenerateCode(ctx, length, kind, "john@example.com")
 
 		assert.True(t, ok)
-		assert.NotNil(t, otp)
-		assert.Equal(t, hashedCode, otp.HashedCode)
-		assert.True(t, otp.ExpiresAt.Before(time.Now().UTC().Add(time.Minute)))
+		assert.NotEmpty(t, code)
 	})
 
 	t.Run("returns error if hashing fails", func(t *testing.T) {
@@ -55,19 +53,21 @@ func TestDefaultManager_GenerateOTP(t *testing.T) {
 		mockHasher.EXPECT().Hash(mock.AnythingOfType("string")).
 			Return("", errors.New("hashing error")).Times(1)
 
-		_, ok := manager.GenerateOTP(ctx, length, kind)
+		code, ok := manager.GenerateCode(ctx, length, KindEmployeePassword, "john@example.com")
 
 		assert.False(t, ok)
+		assert.Empty(t, code)
 	})
 }
 
-func TestDefaultManager_Retrieve(t *testing.T) {
+func TestDefaultManager_Validate(t *testing.T) {
 	ctx := context.Background()
 	kind := KindEmployeePassword
+	principal := "john@example.com"
 	code := "existing-code"
 	hashedCode := "hashed-code"
 
-	t.Run("successfully retrieves OTP", func(t *testing.T) {
+	t.Run("successfully validates OTP", func(t *testing.T) {
 		mockStorage := NewMockStorage(t)
 		mockHasher := hasher.NewMockHasher(t)
 		manager := &DefaultManager{
@@ -75,27 +75,25 @@ func TestDefaultManager_Retrieve(t *testing.T) {
 			hashingAlgo:        mockHasher,
 			expirationDuration: time.Minute,
 		}
-		expirationTime := time.Now().UTC().Add(time.Minute)
 
-		expectedOTP := OneTimePassword{
-			Kind:       kind,
-			Code:       code,
-			HashedCode: hashedCode,
-			ExpiresAt:  expirationTime,
-		}
-
-		mockHasher.EXPECT().Hash(code).
+		// Expectations
+		mockHasher.EXPECT().Hash(mock.AnythingOfType("string")).
 			Return(hashedCode, nil).Times(1)
 
-		mockStorage.EXPECT().Get(ctx, kind, hashedCode).Return(expectedOTP, nil)
+		mockStorage.EXPECT().Get(ctx, kind, principal).
+			Return(&otpData{
+				ID:        hashedCode,
+				Kind:      kind,
+				Principal: principal,
+				ExpiresAt: time.Now().UTC().Add(time.Minute),
+			}, nil).Times(1)
 
-		otp, ok := manager.Retrieve(ctx, kind, code)
+		ok := manager.VerifyCode(ctx, kind, principal, code)
 
 		assert.True(t, ok)
-		assert.Equal(t, expectedOTP, otp)
 	})
 
-	t.Run("Retrieves OTP when expired", func(t *testing.T) {
+	t.Run("validation fails when hashing fails", func(t *testing.T) {
 		mockStorage := NewMockStorage(t)
 		mockHasher := hasher.NewMockHasher(t)
 		manager := &DefaultManager{
@@ -103,26 +101,17 @@ func TestDefaultManager_Retrieve(t *testing.T) {
 			hashingAlgo:        mockHasher,
 			expirationDuration: time.Minute,
 		}
-		expirationTime := time.Now().UTC().Add(-time.Minute)
 
-		expectedOTP := OneTimePassword{
-			Kind:       kind,
-			Code:       code,
-			HashedCode: hashedCode,
-			ExpiresAt:  expirationTime,
-		}
+		// Expectations
+		mockHasher.EXPECT().Hash(mock.AnythingOfType("string")).
+			Return("", errors.New("hashing error")).Times(1)
 
-		mockHasher.EXPECT().Hash(code).
-			Return(hashedCode, nil).Times(1)
-
-		mockStorage.EXPECT().Get(ctx, kind, hashedCode).Return(expectedOTP, nil)
-
-		_, ok := manager.Retrieve(ctx, kind, code)
+		ok := manager.VerifyCode(ctx, kind, principal, code)
 
 		assert.False(t, ok)
 	})
 
-	t.Run("returns error when storage fails", func(t *testing.T) {
+	t.Run("validation fails when no record is found", func(t *testing.T) {
 		mockStorage := NewMockStorage(t)
 		mockHasher := hasher.NewMockHasher(t)
 		manager := &DefaultManager{
@@ -131,13 +120,14 @@ func TestDefaultManager_Retrieve(t *testing.T) {
 			expirationDuration: time.Minute,
 		}
 
-		mockHasher.EXPECT().Hash(code).
+		// Expectations
+		mockHasher.EXPECT().Hash(mock.AnythingOfType("string")).
 			Return(hashedCode, nil).Times(1)
 
-		mockStorage.EXPECT().Get(ctx, kind, hashedCode).
-			Return(OneTimePassword{}, errors.New("not found"))
+		mockStorage.EXPECT().Get(ctx, kind, principal).
+			Return(nil, errors.New("record not found")).Times(1)
 
-		_, ok := manager.Retrieve(ctx, kind, code)
+		ok := manager.VerifyCode(ctx, kind, principal, code)
 
 		assert.False(t, ok)
 	})
@@ -145,8 +135,8 @@ func TestDefaultManager_Retrieve(t *testing.T) {
 
 func TestDefaultManager_Remove(t *testing.T) {
 	ctx := context.Background()
-	code := "existing-code"
-	hashedCode := "hashed-code"
+	kind := KindEmployeePassword
+	principal := "john@example.com"
 
 	t.Run("operation is successful", func(t *testing.T) {
 		mockStorage := NewMockStorage(t)
@@ -157,12 +147,10 @@ func TestDefaultManager_Remove(t *testing.T) {
 			expirationDuration: time.Minute,
 		}
 
-		mockHasher.EXPECT().Hash(code).
-			Return(hashedCode, nil).Times(1)
+		// Expectations
+		mockStorage.EXPECT().Remove(ctx, kind, principal).Return(nil)
 
-		mockStorage.EXPECT().Remove(ctx, hashedCode).Return(nil)
-
-		ok := manager.Remove(ctx, code)
+		ok := manager.Remove(ctx, kind, principal)
 
 		assert.True(t, ok)
 	})
@@ -176,13 +164,9 @@ func TestDefaultManager_Remove(t *testing.T) {
 			expirationDuration: time.Minute,
 		}
 
-		// Expectations
-		mockHasher.EXPECT().Hash(code).
-			Return(hashedCode, nil).Times(1)
+		mockStorage.EXPECT().Remove(ctx, kind, principal).Return(errors.New("error"))
 
-		mockStorage.EXPECT().Remove(ctx, hashedCode).Return(errors.New("error"))
-
-		ok := manager.Remove(ctx, code)
+		ok := manager.Remove(ctx, kind, principal)
 
 		assert.False(t, ok)
 	})

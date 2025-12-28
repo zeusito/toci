@@ -292,25 +292,27 @@ func (_m *MockStorage) EXPECT() *MockStorage_Expecter {
 }
 
 // Get provides a mock function for the type MockStorage
-func (_mock *MockStorage) Get(ctx context.Context, hashedToken string) (PrincipalClaims, error) {
-	ret := _mock.Called(ctx, hashedToken)
+func (_mock *MockStorage) Get(ctx context.Context, hashedID string) (*sessionData, error) {
+	ret := _mock.Called(ctx, hashedID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Get")
 	}
 
-	var r0 PrincipalClaims
+	var r0 *sessionData
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (PrincipalClaims, error)); ok {
-		return returnFunc(ctx, hashedToken)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*sessionData, error)); ok {
+		return returnFunc(ctx, hashedID)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) PrincipalClaims); ok {
-		r0 = returnFunc(ctx, hashedToken)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *sessionData); ok {
+		r0 = returnFunc(ctx, hashedID)
 	} else {
-		r0 = ret.Get(0).(PrincipalClaims)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*sessionData)
+		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = returnFunc(ctx, hashedToken)
+		r1 = returnFunc(ctx, hashedID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -324,12 +326,12 @@ type MockStorage_Get_Call struct {
 
 // Get is a helper method to define mock.On call
 //   - ctx context.Context
-//   - hashedToken string
-func (_e *MockStorage_Expecter) Get(ctx interface{}, hashedToken interface{}) *MockStorage_Get_Call {
-	return &MockStorage_Get_Call{Call: _e.mock.On("Get", ctx, hashedToken)}
+//   - hashedID string
+func (_e *MockStorage_Expecter) Get(ctx interface{}, hashedID interface{}) *MockStorage_Get_Call {
+	return &MockStorage_Get_Call{Call: _e.mock.On("Get", ctx, hashedID)}
 }
 
-func (_c *MockStorage_Get_Call) Run(run func(ctx context.Context, hashedToken string)) *MockStorage_Get_Call {
+func (_c *MockStorage_Get_Call) Run(run func(ctx context.Context, hashedID string)) *MockStorage_Get_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -347,19 +349,19 @@ func (_c *MockStorage_Get_Call) Run(run func(ctx context.Context, hashedToken st
 	return _c
 }
 
-func (_c *MockStorage_Get_Call) Return(principalClaims PrincipalClaims, err error) *MockStorage_Get_Call {
-	_c.Call.Return(principalClaims, err)
+func (_c *MockStorage_Get_Call) Return(sessionDataMoqParam *sessionData, err error) *MockStorage_Get_Call {
+	_c.Call.Return(sessionDataMoqParam, err)
 	return _c
 }
 
-func (_c *MockStorage_Get_Call) RunAndReturn(run func(ctx context.Context, hashedToken string) (PrincipalClaims, error)) *MockStorage_Get_Call {
+func (_c *MockStorage_Get_Call) RunAndReturn(run func(ctx context.Context, hashedID string) (*sessionData, error)) *MockStorage_Get_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // Remove provides a mock function for the type MockStorage
-func (_mock *MockStorage) Remove(ctx context.Context, hashedToken string) error {
-	ret := _mock.Called(ctx, hashedToken)
+func (_mock *MockStorage) Remove(ctx context.Context, hashedID string) error {
+	ret := _mock.Called(ctx, hashedID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Remove")
@@ -367,7 +369,7 @@ func (_mock *MockStorage) Remove(ctx context.Context, hashedToken string) error 
 
 	var r0 error
 	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = returnFunc(ctx, hashedToken)
+		r0 = returnFunc(ctx, hashedID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -381,12 +383,12 @@ type MockStorage_Remove_Call struct {
 
 // Remove is a helper method to define mock.On call
 //   - ctx context.Context
-//   - hashedToken string
-func (_e *MockStorage_Expecter) Remove(ctx interface{}, hashedToken interface{}) *MockStorage_Remove_Call {
-	return &MockStorage_Remove_Call{Call: _e.mock.On("Remove", ctx, hashedToken)}
+//   - hashedID string
+func (_e *MockStorage_Expecter) Remove(ctx interface{}, hashedID interface{}) *MockStorage_Remove_Call {
+	return &MockStorage_Remove_Call{Call: _e.mock.On("Remove", ctx, hashedID)}
 }
 
-func (_c *MockStorage_Remove_Call) Run(run func(ctx context.Context, hashedToken string)) *MockStorage_Remove_Call {
+func (_c *MockStorage_Remove_Call) Run(run func(ctx context.Context, hashedID string)) *MockStorage_Remove_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -409,22 +411,22 @@ func (_c *MockStorage_Remove_Call) Return(err error) *MockStorage_Remove_Call {
 	return _c
 }
 
-func (_c *MockStorage_Remove_Call) RunAndReturn(run func(ctx context.Context, hashedToken string) error) *MockStorage_Remove_Call {
+func (_c *MockStorage_Remove_Call) RunAndReturn(run func(ctx context.Context, hashedID string) error) *MockStorage_Remove_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // Set provides a mock function for the type MockStorage
-func (_mock *MockStorage) Set(ctx context.Context, hashedToken string, claims PrincipalClaims, expiresAt time.Time) error {
-	ret := _mock.Called(ctx, hashedToken, claims, expiresAt)
+func (_mock *MockStorage) Set(ctx context.Context, hashedID string, data *sessionData) error {
+	ret := _mock.Called(ctx, hashedID, data)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Set")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, PrincipalClaims, time.Time) error); ok {
-		r0 = returnFunc(ctx, hashedToken, claims, expiresAt)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *sessionData) error); ok {
+		r0 = returnFunc(ctx, hashedID, data)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -438,14 +440,13 @@ type MockStorage_Set_Call struct {
 
 // Set is a helper method to define mock.On call
 //   - ctx context.Context
-//   - hashedToken string
-//   - claims PrincipalClaims
-//   - expiresAt time.Time
-func (_e *MockStorage_Expecter) Set(ctx interface{}, hashedToken interface{}, claims interface{}, expiresAt interface{}) *MockStorage_Set_Call {
-	return &MockStorage_Set_Call{Call: _e.mock.On("Set", ctx, hashedToken, claims, expiresAt)}
+//   - hashedID string
+//   - data *sessionData
+func (_e *MockStorage_Expecter) Set(ctx interface{}, hashedID interface{}, data interface{}) *MockStorage_Set_Call {
+	return &MockStorage_Set_Call{Call: _e.mock.On("Set", ctx, hashedID, data)}
 }
 
-func (_c *MockStorage_Set_Call) Run(run func(ctx context.Context, hashedToken string, claims PrincipalClaims, expiresAt time.Time)) *MockStorage_Set_Call {
+func (_c *MockStorage_Set_Call) Run(run func(ctx context.Context, hashedID string, data *sessionData)) *MockStorage_Set_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -455,19 +456,14 @@ func (_c *MockStorage_Set_Call) Run(run func(ctx context.Context, hashedToken st
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
-		var arg2 PrincipalClaims
+		var arg2 *sessionData
 		if args[2] != nil {
-			arg2 = args[2].(PrincipalClaims)
-		}
-		var arg3 time.Time
-		if args[3] != nil {
-			arg3 = args[3].(time.Time)
+			arg2 = args[2].(*sessionData)
 		}
 		run(
 			arg0,
 			arg1,
 			arg2,
-			arg3,
 		)
 	})
 	return _c
@@ -478,7 +474,7 @@ func (_c *MockStorage_Set_Call) Return(err error) *MockStorage_Set_Call {
 	return _c
 }
 
-func (_c *MockStorage_Set_Call) RunAndReturn(run func(ctx context.Context, hashedToken string, claims PrincipalClaims, expiresAt time.Time) error) *MockStorage_Set_Call {
+func (_c *MockStorage_Set_Call) RunAndReturn(run func(ctx context.Context, hashedID string, data *sessionData) error) *MockStorage_Set_Call {
 	_c.Call.Return(run)
 	return _c
 }
