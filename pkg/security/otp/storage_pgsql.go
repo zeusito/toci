@@ -10,7 +10,7 @@ import (
 type OneTimeTokenRecord struct {
 	bun.BaseModel `bun:"table:user_otts,alias:ott"`
 	ID            string    `bun:"id,pk"`
-	Kind          Kind      `bun:"kind"`
+	Kind          CodeKind  `bun:"kind"`
 	Principal     string    `bun:"principal"`
 	ExpiresAt     time.Time `bun:"expires_at"`
 	CreatedAt     time.Time `bun:"created_at"`
@@ -27,7 +27,7 @@ func NewPgSQLStore(db *bun.DB) *PgSQLStore {
 }
 
 // Put stores a new OTP in the database
-func (s *PgSQLStore) Put(ctx context.Context, kind Kind, principal, hashedCode string, expiresAt time.Time) error {
+func (s *PgSQLStore) Put(ctx context.Context, kind CodeKind, principal, hashedCode string, expiresAt time.Time) error {
 	_, err := s.db.NewInsert().
 		Model(&OneTimeTokenRecord{
 			ID:        hashedCode,
@@ -42,7 +42,7 @@ func (s *PgSQLStore) Put(ctx context.Context, kind Kind, principal, hashedCode s
 }
 
 // Get retrieves an OTP from the database, by default only the latest one for the given kind and principal is returned
-func (s *PgSQLStore) Get(ctx context.Context, kind Kind, principal string) (*otpData, error) {
+func (s *PgSQLStore) Get(ctx context.Context, kind CodeKind, principal string) (*otpData, error) {
 	var model OneTimeTokenRecord
 
 	err := s.db.NewSelect().
@@ -67,7 +67,7 @@ func (s *PgSQLStore) Get(ctx context.Context, kind Kind, principal string) (*otp
 }
 
 // Remove deletes all codes for a given kind and principal
-func (s *PgSQLStore) Remove(ctx context.Context, kind Kind, principal string) error {
+func (s *PgSQLStore) Remove(ctx context.Context, kind CodeKind, principal string) error {
 	_, err := s.db.NewDelete().
 		Model((*OneTimeTokenRecord)(nil)).
 		Where("principal = ?", principal).

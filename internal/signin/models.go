@@ -1,4 +1,6 @@
-package models
+package signin
+
+import "time"
 
 type LoginWithEmailOTPRequest struct {
 	Email  string `json:"email" validate:"required,max=100,email"`
@@ -17,7 +19,7 @@ type OIDCLoginRequest struct {
 }
 
 type SignInResponse struct {
-	AccessToken string `json:"accessToken"`
-	TokenType   string `json:"tokenType"`
-	ExpiresIn   int    `json:"expiresIn"`
+	AccessToken string    `json:"accessToken"`
+	TokenType   string    `json:"tokenType"`
+	ExpiresAt   time.Time `json:"expiresAt"`
 }

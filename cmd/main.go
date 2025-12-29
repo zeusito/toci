@@ -8,11 +8,15 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
+	"github.com/zeusito/toci/internal/actions"
 	"github.com/zeusito/toci/internal/healthcheck/handlers"
+	"github.com/zeusito/toci/internal/signin"
 	"github.com/zeusito/toci/pkg/config"
 	"github.com/zeusito/toci/pkg/db"
 	"github.com/zeusito/toci/pkg/logger"
 	"github.com/zeusito/toci/pkg/router"
+	"github.com/zeusito/toci/pkg/security/otp"
+	"github.com/zeusito/toci/pkg/security/sessions"
 )
 
 func main() {
@@ -35,8 +39,21 @@ func main() {
 	// Init router
 	myRouter := router.NewHTTPRouter(myConfig.Server)
 
+	// Init shared services
+	otpManager, ok := otp.NewManagerWithPgSQLStorage(myDB.Conn, myConfig.Hasher.SHASecret)
+	if !ok {
+		log.Fatal().Msg("Error creating OTP manager")
+	}
+	sessionManager, ok := sessions.NewManagerWithPgSQLStorage(myDB.Conn, myConfig.Hasher.SHASecret)
+	if !ok {
+		log.Fatal().Msg("Error creating session manager")
+	}
+
 	// Health Controller
 	_ = handlers.NewHealthController(myRouter.Mux)
+
+	// Modules
+	signin.InitModule(myRouter.Mux, myDB.Conn, otpManager, sessionManager, actions.NewDefaultActions())
 
 	// Start server in background
 	go myRouter.Start()

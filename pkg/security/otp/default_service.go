@@ -16,7 +16,7 @@ type DefaultManager struct {
 }
 
 // GenerateCode generates a random code of the specified length and kind
-func (s *DefaultManager) GenerateCode(ctx context.Context, length int, kind Kind, principal string) (string, bool) {
+func (s *DefaultManager) GenerateCode(ctx context.Context, length int, kind CodeKind, principal string) (string, bool) {
 	code := toolbox.SecureRandomString(length)
 	now := time.Now().UTC()
 
@@ -39,7 +39,7 @@ func (s *DefaultManager) GenerateCode(ctx context.Context, length int, kind Kind
 // VerifyCode verifies the code of the specified kind and principal.
 // By default, only the last code from the combined kind and principal is valid.
 // Expiration is checked at the storage level.
-func (s *DefaultManager) VerifyCode(ctx context.Context, kind Kind, principal string, code string) bool {
+func (s *DefaultManager) VerifyCode(ctx context.Context, kind CodeKind, principal string, code string) bool {
 	hashedCode, err := s.hashingAlgo.Hash(code)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to hash code")
@@ -62,7 +62,7 @@ func (s *DefaultManager) VerifyCode(ctx context.Context, kind Kind, principal st
 }
 
 // Remove removes the code from the storage. All codes for the specified kind and principal are removed.
-func (s *DefaultManager) Remove(ctx context.Context, kind Kind, principal string) bool {
+func (s *DefaultManager) Remove(ctx context.Context, kind CodeKind, principal string) bool {
 	err := s.storage.Remove(ctx, kind, principal)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to remove OTP")

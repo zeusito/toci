@@ -13,7 +13,7 @@ import (
 
 func TestDefaultManager_GenerateOTP(t *testing.T) {
 	ctx := context.Background()
-	kind := KindPanelistPassword
+	kind := CodeKindUserPassword
 	length := 6
 
 	t.Run("successfully generates and stores OTP", func(t *testing.T) {
@@ -53,7 +53,7 @@ func TestDefaultManager_GenerateOTP(t *testing.T) {
 		mockHasher.EXPECT().Hash(mock.AnythingOfType("string")).
 			Return("", errors.New("hashing error")).Times(1)
 
-		code, ok := manager.GenerateCode(ctx, length, KindEmployeePassword, "john@example.com")
+		code, ok := manager.GenerateCode(ctx, length, CodeKindEmployeePassword, "john@example.com")
 
 		assert.False(t, ok)
 		assert.Empty(t, code)
@@ -62,7 +62,7 @@ func TestDefaultManager_GenerateOTP(t *testing.T) {
 
 func TestDefaultManager_Validate(t *testing.T) {
 	ctx := context.Background()
-	kind := KindEmployeePassword
+	kind := CodeKindEmployeePassword
 	principal := "john@example.com"
 	code := "existing-code"
 	hashedCode := "hashed-code"
@@ -135,7 +135,7 @@ func TestDefaultManager_Validate(t *testing.T) {
 
 func TestDefaultManager_Remove(t *testing.T) {
 	ctx := context.Background()
-	kind := KindEmployeePassword
+	kind := CodeKindEmployeePassword
 	principal := "john@example.com"
 
 	t.Run("operation is successful", func(t *testing.T) {

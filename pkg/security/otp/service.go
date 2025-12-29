@@ -9,31 +9,31 @@ import (
 	"github.com/zeusito/toci/pkg/toolbox/hasher"
 )
 
-type Kind string
+type CodeKind string
 
 const (
-	KindPanelistPassword Kind = "panelist_password"
-	KindEmployeePassword Kind = "employee_password"
+	CodeKindUserPassword     CodeKind = "user_password"
+	CodeKindEmployeePassword CodeKind = "employee_password"
 )
 
 // otpData internal struct used to store OTP data, not exposed to the outside world
 type otpData struct {
 	ID        string
-	Kind      Kind
+	Kind      CodeKind
 	Principal string
 	ExpiresAt time.Time
 }
 
 type Manager interface {
-	GenerateCode(ctx context.Context, length int, kind Kind, principal string) (string, bool)
-	VerifyCode(ctx context.Context, kind Kind, principal string, code string) bool
-	Remove(ctx context.Context, kind Kind, principal string) bool
+	GenerateCode(ctx context.Context, length int, kind CodeKind, principal string) (string, bool)
+	VerifyCode(ctx context.Context, kind CodeKind, principal string, code string) bool
+	Remove(ctx context.Context, kind CodeKind, principal string) bool
 }
 
 type Storage interface {
-	Put(ctx context.Context, kind Kind, principal, hashedCode string, expiresAt time.Time) error
-	Get(ctx context.Context, kind Kind, principal string) (*otpData, error)
-	Remove(ctx context.Context, kind Kind, principal string) error
+	Put(ctx context.Context, kind CodeKind, principal, hashedCode string, expiresAt time.Time) error
+	Get(ctx context.Context, kind CodeKind, principal string) (*otpData, error)
+	Remove(ctx context.Context, kind CodeKind, principal string) error
 }
 
 func NewManagerWithPgSQLStorage(db *bun.DB, hasherSecret string) (Manager, bool) {
