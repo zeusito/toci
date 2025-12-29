@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -9,7 +10,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/uptrace/bun/extra/bunzerolog"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/rs/zerolog/log"
 	"github.com/uptrace/bun"
@@ -18,6 +19,7 @@ import (
 
 type DatabaseConnection struct {
 	Conn *bun.DB
+	pool *pgxpool.Pool
 }
 
 func MustCreatePooledConnection(dbConfig config.DatabaseConfigurations) *DatabaseConnection {
@@ -26,32 +28,38 @@ func MustCreatePooledConnection(dbConfig config.DatabaseConfigurations) *Databas
 		return &DatabaseConnection{}
 	}
 
-	dsn := fmt.Sprintf("postgres://%s:%s@%s:%d/%s", dbConfig.Username, dbConfig.Password, dbConfig.Host, dbConfig.Port, dbConfig.DbName)
+	// Format the DSN, it aims for a fixed number of connections
+	dsn := fmt.Sprintf("postgres://%s:%s@%s:%d/%s&pool_max_conns=%d&pool_min_conns=%d",
+		dbConfig.Username, dbConfig.Password, dbConfig.Host, dbConfig.Port, dbConfig.DbName,
+		dbConfig.PoolSize, dbConfig.PoolSize)
 
-	parsedCfg, err := pgx.ParseConfig(dsn)
+	// Parse the DSN
+	parsedCfg, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
-		log.Fatal().Msgf("Error parsing database configuration: %v", err)
+		log.Fatal().Err(err).Msg("Error parsing database configuration")
+		return nil
+	}
+
+	// Create the connection pool using pgxpool
+	pool, err := pgxpool.NewWithConfig(context.Background(), parsedCfg)
+	if err != nil {
+		log.Fatal().Err(err).Msg("Error creating connection pool")
 		return nil
 	}
 
 	// Init a connection compatible with the standard library
-	dbPool := stdlib.OpenDB(*parsedCfg)
-
-	// Connection pool settings
-	dbPool.SetMaxOpenConns(dbConfig.PoolSize)
-	dbPool.SetMaxIdleConns(dbConfig.PoolSize)
-	dbPool.SetConnMaxLifetime(3 * time.Minute)
+	dbPool := stdlib.OpenDBFromPool(pool)
 
 	// Test connection
 	if err := dbPool.Ping(); err != nil {
-		log.Fatal().Msgf("Error pinging database: %v", err)
+		log.Fatal().Err(err).Msg("Error pinging database")
 		return nil
 	}
 
-	log.Info().Msg("Successfully connected to database")
+	log.Info().Msgf("Successfully connected to database. Pool size: %d", pool.Stat().TotalConns())
 
 	hook := bunzerolog.NewQueryHook(
-		bunzerolog.WithQueryLogLevel(zerolog.DebugLevel),
+		bunzerolog.WithQueryLogLevel(zerolog.InfoLevel),
 		bunzerolog.WithSlowQueryLogLevel(zerolog.WarnLevel),
 		bunzerolog.WithErrorQueryLogLevel(zerolog.ErrorLevel),
 		bunzerolog.WithSlowQueryThreshold(3*time.Second),
@@ -60,12 +68,13 @@ func MustCreatePooledConnection(dbConfig config.DatabaseConfigurations) *Databas
 	db := bun.NewDB(dbPool, pgdialect.New(), bun.WithDiscardUnknownColumns()).
 		WithQueryHook(hook)
 
-	return &DatabaseConnection{Conn: db}
+	return &DatabaseConnection{Conn: db, pool: pool}
 }
 
 func (c *DatabaseConnection) Close() {
-	if c.Conn == nil {
+	if c.pool == nil {
 		return
 	}
-	_ = c.Conn.Close()
+
+	c.pool.Close()
 }

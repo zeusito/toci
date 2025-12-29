@@ -5,87 +5,41 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
+	"github.com/uptrace/bun"
 	"github.com/zeusito/toci/pkg/toolbox/hasher"
 )
 
-type DefaultManager struct {
-	storage     Storage
-	tokenHasher hasher.Hasher
+type SessionMetadata map[string]string
+
+type Session struct {
+	PrincipalID string
+	Metadata    SessionMetadata
+	ExpiresAt   time.Time
+	CreatedAt   time.Time
 }
 
-func (s *DefaultManager) NewSession(ctx context.Context, data PrincipalClaims, validForDuration time.Duration) (string, bool) {
-	log.Info().Msgf("Creating new session for principal %s", data.PrincipalID)
-
-	// Create a new opaque token
-	token, hashedToken, err := NewOpaqueToken(s.tokenHasher)
-	if err != nil {
-		log.Warn().Err(err).Msg("Failed to create new opaque token")
-		return "", false
-	}
-
-	// Persist the session in storage
-	sessionData := &sessionData{
-		PrincipalID: data.PrincipalID,
-		OrgID:       data.OrgID,
-		Roles:       data.Roles,
-		ExpiresAt:   time.Now().UTC().Add(validForDuration),
-		CreatedAt:   time.Now().UTC(),
-	}
-
-	err = s.storage.Set(ctx, hashedToken, sessionData)
-	if err != nil {
-		log.Warn().Err(err).Msg("Failed to persist session in storage")
-		return "", false
-	}
-
-	// Return the opaque token string
-	return token, true
+type Manager interface {
+	CreateSession(ctx context.Context, data Session, expiresAt time.Time) (string, bool)
+	GetSession(ctx context.Context, token string) (*Session, bool)
+	RemoveSession(ctx context.Context, token string) bool
+	CleanUpExpiredSessions(ctx context.Context)
 }
 
-func (s *DefaultManager) GetSession(ctx context.Context, token string) PrincipalClaims {
-	log.Info().Msgf("Getting session from token...")
-
-	hashedToken, err := s.tokenHasher.Hash(token)
-	if err != nil {
-		log.Warn().Err(err).Msg("Failed to decode token")
-		return PrincipalClaims{IsAuthenticated: false}
-	}
-
-	session, err := s.storage.Get(ctx, hashedToken)
-	if err != nil {
-		log.Warn().Err(err).Msg("Failed to get session from storage")
-		return PrincipalClaims{IsAuthenticated: false}
-	}
-
-	return PrincipalClaims{
-		IsAuthenticated: true,
-		PrincipalID:     session.PrincipalID,
-		OrgID:           session.OrgID,
-		Roles:           session.Roles,
-	}
+type Storage interface {
+	Set(ctx context.Context, hashedID string, data *Session) error
+	Get(ctx context.Context, hashedID string) (*Session, error)
+	Remove(ctx context.Context, hashedID string) error
 }
 
-func (s *DefaultManager) RemoveSession(ctx context.Context, token string) bool {
-	log.Info().Msgf("Removing session...")
-
-	hashedToken, err := s.tokenHasher.Hash(token)
+func NewManagerWithPgSQLStorage(db *bun.DB, hasherSecret string) (Manager, bool) {
+	theHasher, err := hasher.NewHmacSHA256(hasherSecret)
 	if err != nil {
-		log.Warn().Err(err).Msg("Failed to decode token")
-		return false
+		log.Error().Err(err).Msg("Failed to create hasher")
+		return nil, false
 	}
 
-	// Remove the session from storage
-	err = s.storage.Remove(ctx, hashedToken)
-	if err != nil {
-		log.Warn().Err(err).Msg("Failed to remove session from storage")
-		return false
-	}
-
-	return true
-}
-
-func (s *DefaultManager) CleanUpExpiredSessions(ctx context.Context) {
-	log.Info().Msg("Cleaning up expired sessions...")
-
-	// TODO: Implement clean up expired sessions
+	return &DefaultManager{
+		storage:     NewPgSQLStorage(db),
+		tokenHasher: theHasher,
+	}, true
 }

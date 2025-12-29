@@ -22,12 +22,14 @@ func AuthenticationFilter(sessionManager sessions.Manager) func(http.Handler) ht
 			token = token[7:]
 
 			// Validate the token
-			claims := sessionManager.GetSession(r.Context(), token)
-			if !claims.IsAuthenticated {
+			record, ok := sessionManager.GetSession(r.Context(), token)
+			if !ok {
 				log.Warn().Msg("session not authenticated")
 				http.Error(w, "Unauthorized", http.StatusUnauthorized)
 				return
 			}
+
+			claims := sessions.ClaimsFromSession(record)
 
 			// Add claims to context
 			ctx := sessions.AddToContext(r.Context(), claims)

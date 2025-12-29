@@ -1,6 +1,9 @@
 package sessions
 
-import "context"
+import (
+	"context"
+	"strings"
+)
 
 type ctxKeyAuthClaims int
 
@@ -21,6 +24,29 @@ func (c *PrincipalClaims) HasRole(theRole string) bool {
 		}
 	}
 	return false
+}
+
+func (c *PrincipalClaims) ToSession() *Session {
+	return &Session{
+		PrincipalID: c.PrincipalID,
+		Metadata: SessionMetadata{
+			"orgId": c.OrgID,
+			"roles": strings.Join(c.Roles, ","),
+		},
+	}
+}
+
+func ClaimsFromSession(session *Session) PrincipalClaims {
+	if session == nil {
+		return PrincipalClaims{IsAuthenticated: false}
+	}
+
+	return PrincipalClaims{
+		IsAuthenticated: true,
+		PrincipalID:     session.PrincipalID,
+		OrgID:           session.Metadata["orgId"],
+		Roles:           strings.Split(session.Metadata["roles"], ","),
+	}
 }
 
 func AddToContext(ctx context.Context, claims PrincipalClaims) context.Context {

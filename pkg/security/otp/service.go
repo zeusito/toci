@@ -5,69 +5,49 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
-	"github.com/zeusito/toci/pkg/toolbox"
+	"github.com/uptrace/bun"
 	"github.com/zeusito/toci/pkg/toolbox/hasher"
 )
 
-type DefaultManager struct {
-	hashingAlgo        hasher.Hasher
-	storage            Storage
-	expirationDuration time.Duration
+type Kind string
+
+const (
+	KindPanelistPassword Kind = "panelist_password"
+	KindEmployeePassword Kind = "employee_password"
+)
+
+// otpData internal struct used to store OTP data, not exposed to the outside world
+type otpData struct {
+	ID        string
+	Kind      Kind
+	Principal string
+	ExpiresAt time.Time
 }
 
-// GenerateCode generates a random code of the specified length and kind
-func (s *DefaultManager) GenerateCode(ctx context.Context, length int, kind Kind, principal string) (string, bool) {
-	code := toolbox.SecureRandomString(length)
-	now := time.Now().UTC()
-
-	hashedCode, err := s.hashingAlgo.Hash(code)
-	if err != nil {
-		log.Error().Err(err).Msg("failed to hash code")
-		return "", false
-	}
-
-	// Persist the OTP
-	err = s.storage.Put(ctx, kind, principal, hashedCode, now.Add(s.expirationDuration))
-	if err != nil {
-		log.Error().Err(err).Msg("failed to persist OTP")
-		return "", false
-	}
-
-	return code, true
+type Manager interface {
+	GenerateCode(ctx context.Context, length int, kind Kind, principal string) (string, bool)
+	VerifyCode(ctx context.Context, kind Kind, principal string, code string) bool
+	Remove(ctx context.Context, kind Kind, principal string) bool
 }
 
-// VerifyCode verifies the code of the specified kind and principal.
-// By default, only the last code from the combined kind and principal is valid.
-// Expiration is checked at the storage level.
-func (s *DefaultManager) VerifyCode(ctx context.Context, kind Kind, principal string, code string) bool {
-	hashedCode, err := s.hashingAlgo.Hash(code)
-	if err != nil {
-		log.Error().Err(err).Msg("failed to hash code")
-		return false
-	}
-
-	record, err := s.storage.Get(ctx, kind, principal)
-	if err != nil {
-		log.Error().Err(err).Msg("failed to retrieve OTP")
-		return false
-	}
-
-	// check if the hashes match
-	if record.ID != hashedCode {
-		log.Error().Msg("hashes do not match")
-		return false
-	}
-
-	return true
+type Storage interface {
+	Put(ctx context.Context, kind Kind, principal, hashedCode string, expiresAt time.Time) error
+	Get(ctx context.Context, kind Kind, principal string) (*otpData, error)
+	Remove(ctx context.Context, kind Kind, principal string) error
 }
 
-// Remove removes the code from the storage. All codes for the specified kind and principal are removed.
-func (s *DefaultManager) Remove(ctx context.Context, kind Kind, principal string) bool {
-	err := s.storage.Remove(ctx, kind, principal)
+func NewManagerWithPgSQLStorage(db *bun.DB, hasherSecret string) (Manager, bool) {
+	theHasher, err := hasher.NewHmacSHA256(hasherSecret)
 	if err != nil {
-		log.Error().Err(err).Msg("failed to remove OTP")
-		return false
+		log.Error().Err(err).Msg("Failed to create hasher")
+		return nil, false
 	}
 
-	return true
+	storage := NewPgSQLStore(db)
+
+	return &DefaultManager{
+		hashingAlgo:        theHasher,
+		storage:            storage,
+		expirationDuration: 5 * time.Minute,
+	}, true
 }

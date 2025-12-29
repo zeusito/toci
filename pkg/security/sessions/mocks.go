@@ -78,21 +78,104 @@ func (_c *MockManager_CleanUpExpiredSessions_Call) RunAndReturn(run func(ctx con
 	return _c
 }
 
+// CreateSession provides a mock function for the type MockManager
+func (_mock *MockManager) CreateSession(ctx context.Context, data Session, expiresAt time.Time) (string, bool) {
+	ret := _mock.Called(ctx, data, expiresAt)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateSession")
+	}
+
+	var r0 string
+	var r1 bool
+	if returnFunc, ok := ret.Get(0).(func(context.Context, Session, time.Time) (string, bool)); ok {
+		return returnFunc(ctx, data, expiresAt)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, Session, time.Time) string); ok {
+		r0 = returnFunc(ctx, data, expiresAt)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, Session, time.Time) bool); ok {
+		r1 = returnFunc(ctx, data, expiresAt)
+	} else {
+		r1 = ret.Get(1).(bool)
+	}
+	return r0, r1
+}
+
+// MockManager_CreateSession_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateSession'
+type MockManager_CreateSession_Call struct {
+	*mock.Call
+}
+
+// CreateSession is a helper method to define mock.On call
+//   - ctx context.Context
+//   - data Session
+//   - expiresAt time.Time
+func (_e *MockManager_Expecter) CreateSession(ctx interface{}, data interface{}, expiresAt interface{}) *MockManager_CreateSession_Call {
+	return &MockManager_CreateSession_Call{Call: _e.mock.On("CreateSession", ctx, data, expiresAt)}
+}
+
+func (_c *MockManager_CreateSession_Call) Run(run func(ctx context.Context, data Session, expiresAt time.Time)) *MockManager_CreateSession_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 Session
+		if args[1] != nil {
+			arg1 = args[1].(Session)
+		}
+		var arg2 time.Time
+		if args[2] != nil {
+			arg2 = args[2].(time.Time)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
+	})
+	return _c
+}
+
+func (_c *MockManager_CreateSession_Call) Return(s string, b bool) *MockManager_CreateSession_Call {
+	_c.Call.Return(s, b)
+	return _c
+}
+
+func (_c *MockManager_CreateSession_Call) RunAndReturn(run func(ctx context.Context, data Session, expiresAt time.Time) (string, bool)) *MockManager_CreateSession_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetSession provides a mock function for the type MockManager
-func (_mock *MockManager) GetSession(ctx context.Context, token string) PrincipalClaims {
+func (_mock *MockManager) GetSession(ctx context.Context, token string) (*Session, bool) {
 	ret := _mock.Called(ctx, token)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetSession")
 	}
 
-	var r0 PrincipalClaims
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) PrincipalClaims); ok {
+	var r0 *Session
+	var r1 bool
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*Session, bool)); ok {
+		return returnFunc(ctx, token)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *Session); ok {
 		r0 = returnFunc(ctx, token)
 	} else {
-		r0 = ret.Get(0).(PrincipalClaims)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*Session)
+		}
 	}
-	return r0
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) bool); ok {
+		r1 = returnFunc(ctx, token)
+	} else {
+		r1 = ret.Get(1).(bool)
+	}
+	return r0, r1
 }
 
 // MockManager_GetSession_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetSession'
@@ -125,84 +208,12 @@ func (_c *MockManager_GetSession_Call) Run(run func(ctx context.Context, token s
 	return _c
 }
 
-func (_c *MockManager_GetSession_Call) Return(principalClaims PrincipalClaims) *MockManager_GetSession_Call {
-	_c.Call.Return(principalClaims)
+func (_c *MockManager_GetSession_Call) Return(session *Session, b bool) *MockManager_GetSession_Call {
+	_c.Call.Return(session, b)
 	return _c
 }
 
-func (_c *MockManager_GetSession_Call) RunAndReturn(run func(ctx context.Context, token string) PrincipalClaims) *MockManager_GetSession_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// NewSession provides a mock function for the type MockManager
-func (_mock *MockManager) NewSession(ctx context.Context, data PrincipalClaims, validForDuration time.Duration) (string, bool) {
-	ret := _mock.Called(ctx, data, validForDuration)
-
-	if len(ret) == 0 {
-		panic("no return value specified for NewSession")
-	}
-
-	var r0 string
-	var r1 bool
-	if returnFunc, ok := ret.Get(0).(func(context.Context, PrincipalClaims, time.Duration) (string, bool)); ok {
-		return returnFunc(ctx, data, validForDuration)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, PrincipalClaims, time.Duration) string); ok {
-		r0 = returnFunc(ctx, data, validForDuration)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, PrincipalClaims, time.Duration) bool); ok {
-		r1 = returnFunc(ctx, data, validForDuration)
-	} else {
-		r1 = ret.Get(1).(bool)
-	}
-	return r0, r1
-}
-
-// MockManager_NewSession_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'NewSession'
-type MockManager_NewSession_Call struct {
-	*mock.Call
-}
-
-// NewSession is a helper method to define mock.On call
-//   - ctx context.Context
-//   - data PrincipalClaims
-//   - validForDuration time.Duration
-func (_e *MockManager_Expecter) NewSession(ctx interface{}, data interface{}, validForDuration interface{}) *MockManager_NewSession_Call {
-	return &MockManager_NewSession_Call{Call: _e.mock.On("NewSession", ctx, data, validForDuration)}
-}
-
-func (_c *MockManager_NewSession_Call) Run(run func(ctx context.Context, data PrincipalClaims, validForDuration time.Duration)) *MockManager_NewSession_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 PrincipalClaims
-		if args[1] != nil {
-			arg1 = args[1].(PrincipalClaims)
-		}
-		var arg2 time.Duration
-		if args[2] != nil {
-			arg2 = args[2].(time.Duration)
-		}
-		run(
-			arg0,
-			arg1,
-			arg2,
-		)
-	})
-	return _c
-}
-
-func (_c *MockManager_NewSession_Call) Return(s string, b bool) *MockManager_NewSession_Call {
-	_c.Call.Return(s, b)
-	return _c
-}
-
-func (_c *MockManager_NewSession_Call) RunAndReturn(run func(ctx context.Context, data PrincipalClaims, validForDuration time.Duration) (string, bool)) *MockManager_NewSession_Call {
+func (_c *MockManager_GetSession_Call) RunAndReturn(run func(ctx context.Context, token string) (*Session, bool)) *MockManager_GetSession_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -292,23 +303,23 @@ func (_m *MockStorage) EXPECT() *MockStorage_Expecter {
 }
 
 // Get provides a mock function for the type MockStorage
-func (_mock *MockStorage) Get(ctx context.Context, hashedID string) (*sessionData, error) {
+func (_mock *MockStorage) Get(ctx context.Context, hashedID string) (*Session, error) {
 	ret := _mock.Called(ctx, hashedID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Get")
 	}
 
-	var r0 *sessionData
+	var r0 *Session
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*sessionData, error)); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*Session, error)); ok {
 		return returnFunc(ctx, hashedID)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *sessionData); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *Session); ok {
 		r0 = returnFunc(ctx, hashedID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*sessionData)
+			r0 = ret.Get(0).(*Session)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
@@ -349,12 +360,12 @@ func (_c *MockStorage_Get_Call) Run(run func(ctx context.Context, hashedID strin
 	return _c
 }
 
-func (_c *MockStorage_Get_Call) Return(sessionDataMoqParam *sessionData, err error) *MockStorage_Get_Call {
-	_c.Call.Return(sessionDataMoqParam, err)
+func (_c *MockStorage_Get_Call) Return(session *Session, err error) *MockStorage_Get_Call {
+	_c.Call.Return(session, err)
 	return _c
 }
 
-func (_c *MockStorage_Get_Call) RunAndReturn(run func(ctx context.Context, hashedID string) (*sessionData, error)) *MockStorage_Get_Call {
+func (_c *MockStorage_Get_Call) RunAndReturn(run func(ctx context.Context, hashedID string) (*Session, error)) *MockStorage_Get_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -417,7 +428,7 @@ func (_c *MockStorage_Remove_Call) RunAndReturn(run func(ctx context.Context, ha
 }
 
 // Set provides a mock function for the type MockStorage
-func (_mock *MockStorage) Set(ctx context.Context, hashedID string, data *sessionData) error {
+func (_mock *MockStorage) Set(ctx context.Context, hashedID string, data *Session) error {
 	ret := _mock.Called(ctx, hashedID, data)
 
 	if len(ret) == 0 {
@@ -425,7 +436,7 @@ func (_mock *MockStorage) Set(ctx context.Context, hashedID string, data *sessio
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *sessionData) error); ok {
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *Session) error); ok {
 		r0 = returnFunc(ctx, hashedID, data)
 	} else {
 		r0 = ret.Error(0)
@@ -441,12 +452,12 @@ type MockStorage_Set_Call struct {
 // Set is a helper method to define mock.On call
 //   - ctx context.Context
 //   - hashedID string
-//   - data *sessionData
+//   - data *Session
 func (_e *MockStorage_Expecter) Set(ctx interface{}, hashedID interface{}, data interface{}) *MockStorage_Set_Call {
 	return &MockStorage_Set_Call{Call: _e.mock.On("Set", ctx, hashedID, data)}
 }
 
-func (_c *MockStorage_Set_Call) Run(run func(ctx context.Context, hashedID string, data *sessionData)) *MockStorage_Set_Call {
+func (_c *MockStorage_Set_Call) Run(run func(ctx context.Context, hashedID string, data *Session)) *MockStorage_Set_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -456,9 +467,9 @@ func (_c *MockStorage_Set_Call) Run(run func(ctx context.Context, hashedID strin
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
-		var arg2 *sessionData
+		var arg2 *Session
 		if args[2] != nil {
-			arg2 = args[2].(*sessionData)
+			arg2 = args[2].(*Session)
 		}
 		run(
 			arg0,
@@ -474,7 +485,7 @@ func (_c *MockStorage_Set_Call) Return(err error) *MockStorage_Set_Call {
 	return _c
 }
 
-func (_c *MockStorage_Set_Call) RunAndReturn(run func(ctx context.Context, hashedID string, data *sessionData) error) *MockStorage_Set_Call {
+func (_c *MockStorage_Set_Call) RunAndReturn(run func(ctx context.Context, hashedID string, data *Session) error) *MockStorage_Set_Call {
 	_c.Call.Return(run)
 	return _c
 }
